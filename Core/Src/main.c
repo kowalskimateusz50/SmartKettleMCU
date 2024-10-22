@@ -95,8 +95,10 @@ int edge_count = 0;//Spare variable for debugging purpouse
  */
 int temperature_adjust = 0;
 
-int temp_counter_x=0;
+int temp_counter_x= 0;
 
+
+int test_change = 0;
 
 float target_temperature = 0.0;
 
@@ -106,7 +108,7 @@ float temperature;//Tmperature Measurment
 
 float temperature_offset = 7.0;//Temperature  heating up offset
 
-int usart_temperature=0;//Sending temperature in serial port
+int usart_temperature = 0;//Sending temperature in serial port
 
 /* USER CODE END PV */
 
