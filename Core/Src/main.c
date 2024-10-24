@@ -63,7 +63,7 @@ char adjust_temperature_message[64];
 /*!
  *USART communication chars arrays
  */
-char rx_buffer[3];
+//char rx_buffer[3];
 char tx_buffer[3];
 char tmp_buffer[2];
 int chars = 0;
@@ -110,6 +110,9 @@ float temperature_offset = 7.0;//Temperature  heating up offset
 
 int usart_temperature = 0;//Sending temperature in serial port
 
+char EchoMessage[5];
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,6 +129,9 @@ void SystemClock_Config(void);
  *In first 'if' we check interrupt for button pin
  *In second 'if' we check interrupt for second button pin
  */
+
+
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //interrupt handler
     if(GPIO_Pin == BUTTON_Pin){
 
@@ -159,24 +165,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //interrupt handler
  *if serial port is sending something we recieve it and check value
  *after check value we set temperature_usart_adjust
  */
+
+int MessageIt = 0;
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 
   if(huart->Instance == USART3)
   {
 
-		if(rx_buffer[0]=='1')
-		{
-			temperature_usart_adjust=100;
-		}
-		if(rx_buffer[0]=='0')
-		{
-			tmp_buffer[0]=rx_buffer[1];
-			tmp_buffer[1]=rx_buffer[2];
-			temperature_usart_adjust=atoi(tmp_buffer);
-		}
 
-  	  HAL_UART_Receive_IT(&huart3,(uint8_t*)rx_buffer,3);
+  	  HAL_UART_Receive_IT(&huart3,(uint8_t*)EchoMessage,4);
+	  HAL_UART_Transmit_IT(&huart3, (uint8_t*)EchoMessage, (sizeof(EchoMessage)-1));
   }
 }
 
@@ -188,6 +188,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -229,7 +230,7 @@ int main(void)
    *Serial ports initialization
    */
   HAL_StatusTypeDef rx_status = ERROR;
-  HAL_UART_Receive_IT(&huart3,(uint8_t*)rx_buffer,3);
+  HAL_UART_Receive_IT(&huart3,(uint8_t*)EchoMessage,4);
 
   HAL_ADC_Start(&hadc1);//Start ADC in blocking mode
 
@@ -364,7 +365,7 @@ int main(void)
 				chars=sprintf(tx_buffer,"%i",usart_temperature);
 			}
 
-		rx_status = HAL_UART_Transmit(&huart3, (uint8_t*)tx_buffer, chars, 100);
+		//rx_status = HAL_UART_Transmit(&huart3, (uint8_t*)tx_buffer, chars, 100);
 
 		temp_counter_x++;
 
@@ -383,15 +384,16 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
   /** Configure LSE Drive Capability
   */
   HAL_PWR_EnableBkUpAccess();
+
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -407,12 +409,14 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Activate the Over-Drive mode
   */
   if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -423,13 +427,6 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_I2C1;
-  PeriphClkInitStruct.Usart3ClockSelection = RCC_USART3CLKSOURCE_PCLK1;
-  PeriphClkInitStruct.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
   }
@@ -467,5 +464,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
