@@ -21,7 +21,6 @@
 #include "main.h"
 #include "adc.h"
 #include "i2c.h"
-#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -86,6 +85,7 @@ uint32_t ADC_voltage_mV = 0;
  */
 unsigned char main_edge_detector = 0;
 unsigned char usart_edge_detector = 0;
+unsigned int count_to_sec = 0;
 
 int edge_count = 0;//Spare variable for debugging purpouse
 
@@ -112,6 +112,8 @@ int usart_temperature = 0;//Sending temperature in serial port
 
 char EchoMessage[5];
 
+char TestMessage[6]="STM32";
+
 
 /* USER CODE END PV */
 
@@ -125,15 +127,13 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 
 /*!
- *Main button and temperature adjust button interrupt callback
- *In first 'if' we check interrupt for button pin
- *In second 'if' we check interrupt for second button pin
+ *Start button and temperature control button interrupt callback
  */
 
 
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //interrupt handler
-    if(GPIO_Pin == BUTTON_Pin){
+    if(GPIO_Pin == START_BUTTON_Pin){
 
     	  if(main_edge_detector)
     	  {
@@ -146,7 +146,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //interrupt handler
     	  }
 
     }
-    if(GPIO_Pin == UBUTTON_Pin){
+    if(GPIO_Pin == CONTROL_BUTTON_Pin){
 
      	  if(usart_edge_detector)
      	  {
@@ -171,12 +171,12 @@ int MessageIt = 0;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 
-  if(huart->Instance == USART3)
+  if(huart->Instance == UART4)
   {
 
 
-  	  HAL_UART_Receive_IT(&huart3,(uint8_t*)EchoMessage,4);
-	  HAL_UART_Transmit_IT(&huart3, (uint8_t*)EchoMessage, (sizeof(EchoMessage)-1));
+  	  HAL_UART_Receive_IT(&huart4,(uint8_t*)EchoMessage,4);
+	  HAL_UART_Transmit_IT(&huart4, (uint8_t*)EchoMessage, (sizeof(EchoMessage)-1));
   }
 }
 
@@ -211,13 +211,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART3_UART_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_I2C1_Init();
-  MX_SPI4_Init();
   MX_ADC1_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_TIM_Base_Start(&htim3);//timer Init
@@ -230,7 +229,7 @@ int main(void)
    *Serial ports initialization
    */
   HAL_StatusTypeDef rx_status = ERROR;
-  HAL_UART_Receive_IT(&huart3,(uint8_t*)EchoMessage,4);
+  HAL_UART_Receive_IT(&huart4,(uint8_t*)EchoMessage,4);
 
   HAL_ADC_Start(&hadc1);//Start ADC in blocking mode
 
@@ -340,7 +339,7 @@ int main(void)
 			//Turn on heating system
 			HAL_GPIO_WritePin(HEATER_GPIO_Port, HEATER_Pin, 1);
 			//Turn oN triack cooler fan
-			HAL_GPIO_WritePin(COOLER_GPIO_Port, COOLER_Pin, 1);
+			HAL_GPIO_WritePin(TRIAC_COOLING_GPIO_Port, TRIAC_COOLING_Pin, 1);
 			//Turn of green led indicator
 			HAL_GPIO_WritePin(LDGREEN_GPIO_Port, LDGREEN_Pin, 0);
 		}
@@ -349,7 +348,7 @@ int main(void)
 			//Turn off heating system
 			HAL_GPIO_WritePin(HEATER_GPIO_Port, HEATER_Pin, 0);
 			//Turn off triack cooler fan
-			HAL_GPIO_WritePin(COOLER_GPIO_Port, COOLER_Pin, 0);
+			HAL_GPIO_WritePin(TRIAC_COOLING_GPIO_Port, TRIAC_COOLING_Pin, 0);
 			//Turn on green led indicator
 			HAL_GPIO_WritePin(LDGREEN_GPIO_Port, LDGREEN_Pin, 1);
 		}
@@ -366,8 +365,6 @@ int main(void)
 			}
 
 		//rx_status = HAL_UART_Transmit(&huart3, (uint8_t*)tx_buffer, chars, 100);
-
-		temp_counter_x++;
 
 		HAL_Delay(100);
 
