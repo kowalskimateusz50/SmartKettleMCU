@@ -60,17 +60,16 @@ void PVD_IRQHandler(void);
 void FLASH_IRQHandler(void);
 void RCC_IRQHandler(void);
 void EXTI0_IRQHandler(void);
-void EXTI3_IRQHandler(void);
+void EXTI2_IRQHandler(void);
 void ADC_IRQHandler(void);
-void EXTI9_5_IRQHandler(void);
 void TIM2_IRQHandler(void);
 void TIM3_IRQHandler(void);
+void TIM4_IRQHandler(void);
 void I2C1_EV_IRQHandler(void);
 void I2C1_ER_IRQHandler(void);
-void USART3_IRQHandler(void);
 void EXTI15_10_IRQHandler(void);
+void UART4_IRQHandler(void);
 void FPU_IRQHandler(void);
-void SPI4_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
@@ -80,5 +79,3 @@ void SPI4_IRQHandler(void);
 #endif
 
 #endif /* __STM32F7xx_IT_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

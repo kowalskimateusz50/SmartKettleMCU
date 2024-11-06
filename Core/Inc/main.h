@@ -58,19 +58,11 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define BMP280_SCK_Pin GPIO_PIN_2
-#define BMP280_SCK_GPIO_Port GPIOE
-#define BMP280_CS2_Pin GPIO_PIN_3
-#define BMP280_CS2_GPIO_Port GPIOE
-#define BMP280_CS1_Pin GPIO_PIN_4
-#define BMP280_CS1_GPIO_Port GPIOE
-#define BMP280_MISO_Pin GPIO_PIN_5
-#define BMP280_MISO_GPIO_Port GPIOE
-#define BMP280_MOSI_Pin GPIO_PIN_6
-#define BMP280_MOSI_GPIO_Port GPIOE
-#define USER_Btn_Pin GPIO_PIN_13
-#define USER_Btn_GPIO_Port GPIOC
-#define USER_Btn_EXTI_IRQn EXTI15_10_IRQn
+#define CONTROL_BUTTON_Pin GPIO_PIN_2
+#define CONTROL_BUTTON_GPIO_Port GPIOE
+#define CONTROL_BUTTON_EXTI_IRQn EXTI2_IRQn
+#define TRIAC_COOLING_Pin GPIO_PIN_4
+#define TRIAC_COOLING_GPIO_Port GPIOE
 #define LDGREEN_Pin GPIO_PIN_5
 #define LDGREEN_GPIO_Port GPIOF
 #define MCO_Pin GPIO_PIN_0
@@ -88,9 +80,8 @@ void Error_Handler(void);
 #define RMII_REF_CLK_GPIO_Port GPIOA
 #define RMII_MDIO_Pin GPIO_PIN_2
 #define RMII_MDIO_GPIO_Port GPIOA
-#define BUTTON_Pin GPIO_PIN_3
-#define BUTTON_GPIO_Port GPIOA
-#define BUTTON_EXTI_IRQn EXTI3_IRQn
+#define START_BUTTON_Pin GPIO_PIN_3
+#define START_BUTTON_GPIO_Port GPIOA
 #define DS18B20_Pin GPIO_PIN_4
 #define DS18B20_GPIO_Port GPIOA
 #define TEST_Pin GPIO_PIN_5
@@ -116,10 +107,6 @@ void Error_Handler(void);
 #define LAMP_SYNC_Pin GPIO_PIN_15
 #define LAMP_SYNC_GPIO_Port GPIOB
 #define LAMP_SYNC_EXTI_IRQn EXTI15_10_IRQn
-#define STLK_RX_Pin GPIO_PIN_8
-#define STLK_RX_GPIO_Port GPIOD
-#define STLK_TX_Pin GPIO_PIN_9
-#define STLK_TX_GPIO_Port GPIOD
 #define ENC_TIM_DT_Pin GPIO_PIN_12
 #define ENC_TIM_DT_GPIO_Port GPIOD
 #define ENC_TIM_CLK_Pin GPIO_PIN_13
@@ -167,11 +154,6 @@ void Error_Handler(void);
 #define LCD_DB6_GPIO_Port GPIOD
 #define LCD_DB7_Pin GPIO_PIN_5
 #define LCD_DB7_GPIO_Port GPIOD
-#define UBUTTON_Pin GPIO_PIN_6
-#define UBUTTON_GPIO_Port GPIOD
-#define UBUTTON_EXTI_IRQn EXTI9_5_IRQn
-#define COOLER_Pin GPIO_PIN_7
-#define COOLER_GPIO_Port GPIOD
 #define RMII_TX_EN_Pin GPIO_PIN_11
 #define RMII_TX_EN_GPIO_Port GPIOG
 #define RMII_TXD0_Pin GPIO_PIN_13
@@ -186,6 +168,7 @@ void Error_Handler(void);
 #define BH1750_SCL_GPIO_Port GPIOB
 #define BH1750_SDA_Pin GPIO_PIN_9
 #define BH1750_SDA_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -195,5 +178,3 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
