@@ -62,10 +62,11 @@ char adjust_temperature_message[64];
 /*!
  *USART communication chars arrays
  */
-//char rx_buffer[3];
-char tx_buffer[3];
-char tmp_buffer[2];
-int chars = 0;
+
+char HmiInputMessage[10];
+char HmiOutputMessage[20];
+
+int DebFlag = 0;
 
 /*!
  *ADC constans
@@ -110,9 +111,6 @@ float temperature_offset = 7.0;//Temperature  heating up offset
 
 int usart_temperature = 0;//Sending temperature in serial port
 
-char EchoMessage[5];
-
-char TestMessage[6]="STM32";
 
 
 /* USER CODE END PV */
@@ -162,7 +160,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //interrupt handler
 
 /*!
  *USART Serial port interrupt
- *if serial port is sending something we recieve it and check value
+ *if serial port is sending something
  *after check value we set temperature_usart_adjust
  */
 
@@ -173,10 +171,22 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
   if(huart->Instance == UART4)
   {
+  	  HAL_UART_Receive_IT(&huart4,(uint8_t*)HmiInputMessage,11);
 
 
-  	  HAL_UART_Receive_IT(&huart4,(uint8_t*)EchoMessage,4);
-	  HAL_UART_Transmit_IT(&huart4, (uint8_t*)EchoMessage, (sizeof(EchoMessage)-1));
+
+  	  /* Check whether listening message emitted */
+  	  if(strcmp(HmiInputMessage,"listening"))
+  	  {
+
+  		/* Create communication frame */
+  		int MessageLength = sprintf(HmiOutputMessage,"Temp:%.3f;",temperature);
+
+  		/* Pass message through UART */
+  		HAL_UART_Transmit_IT(&huart4, (uint8_t*)HmiOutputMessage, MessageLength);
+  	  }
+
+
   }
 }
 
@@ -219,7 +229,8 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_TIM_Base_Start(&htim3);//timer Init
+  HAL_TIM_Base_Start(&htim3);//Timer init in normal mode
+  HAL_TIM_Base_Start_IT(&htim2);//Timer init int interruption mode
 
   LCD_Init();//LCD Init
 
@@ -229,7 +240,7 @@ int main(void)
    *Serial ports initialization
    */
   HAL_StatusTypeDef rx_status = ERROR;
-  HAL_UART_Receive_IT(&huart4,(uint8_t*)EchoMessage,4);
+  HAL_UART_Receive_IT(&huart4,(uint8_t*)HmiInputMessage,10);
 
   HAL_ADC_Start(&hadc1);//Start ADC in blocking mode
 
@@ -353,20 +364,7 @@ int main(void)
 			HAL_GPIO_WritePin(LDGREEN_GPIO_Port, LDGREEN_Pin, 1);
 		}
 
-		//Sending temperature measure in serial port
-		usart_temperature = (int)temperature;
-		if(usart_temperature<100)
-			{
-				chars=sprintf(tx_buffer,"0%i",usart_temperature);
-			}
-			else
-			{
-				chars=sprintf(tx_buffer,"%i",usart_temperature);
-			}
-
-		//rx_status = HAL_UART_Transmit(&huart3, (uint8_t*)tx_buffer, chars, 100);
-
-		HAL_Delay(100);
+		HAL_Delay(10);
 
 
   }
@@ -430,6 +428,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
 
 /* USER CODE END 4 */
 
