@@ -32,6 +32,7 @@
 #include "string.h"
 #include "LCD_HD44780.h"
 #include "stdlib.h"
+#include "hmicom.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,8 +64,10 @@ char adjust_temperature_message[64];
  *USART communication chars arrays
  */
 
-char HmiInputMessage[10];
+char HmiInputMessage[20];
 char HmiOutputMessage[20];
+int ComSequence = 0;
+float HmiTemperature  = 0;
 
 int DebFlag = 0;
 
@@ -88,7 +91,7 @@ unsigned char main_edge_detector = 0;
 unsigned char usart_edge_detector = 0;
 unsigned int count_to_sec = 0;
 
-int edge_count = 0;//Spare variable for debugging purpouse
+int edge_count = 0;//Spare variable for debugging purpose
 
 
 /*!
@@ -171,22 +174,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
   if(huart->Instance == UART4)
   {
-  	  HAL_UART_Receive_IT(&huart4,(uint8_t*)HmiInputMessage,11);
-
-
-
-  	  /* Check whether listening message emitted */
-  	  if(strcmp(HmiInputMessage,"listening"))
-  	  {
-
-  		/* Create communication frame */
-  		int MessageLength = sprintf(HmiOutputMessage,"Temp:%.3f;",temperature);
-
-  		/* Pass message through UART */
-  		HAL_UART_Transmit_IT(&huart4, (uint8_t*)HmiOutputMessage, MessageLength);
-  	  }
-
-
+	  if(ComSequence == 100)
+	  {
+		  HAL_UART_Receive_IT(&huart4,(uint8_t*)HmiInputMessage,10);
+	  }
   }
 }
 
@@ -240,7 +231,8 @@ int main(void)
    *Serial ports initialization
    */
   HAL_StatusTypeDef rx_status = ERROR;
-  HAL_UART_Receive_IT(&huart4,(uint8_t*)HmiInputMessage,10);
+
+  HAL_UART_Receive_IT(&huart4,(uint8_t*)HmiInputMessage,20);
 
   HAL_ADC_Start(&hadc1);//Start ADC in blocking mode
 
@@ -298,6 +290,7 @@ int main(void)
 		if(DS18B20_GetTemperature(0, &temperature))
 			{
 				sprintf(measure_temperature_message,"Temp: %.3f Oc",temperature);
+				HmiTemperature = temperature;
 			}
 
 
@@ -364,9 +357,11 @@ int main(void)
 			HAL_GPIO_WritePin(LDGREEN_GPIO_Port, LDGREEN_Pin, 1);
 		}
 
+		//Communication sequence
+		CommunicationSequence();
+
+
 		HAL_Delay(10);
-
-
   }
   /* USER CODE END 3 */
 }
