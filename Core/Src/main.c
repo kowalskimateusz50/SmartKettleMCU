@@ -18,21 +18,23 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+
 #include "main.h"
 #include "adc.h"
 #include "i2c.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "stdlib.h"
+#include "string.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "onewire.h"
 #include "ds18b20.h"
-#include "string.h"
 #include "LCD_HD44780.h"
-#include "stdlib.h"
-#include "hmicom.h"
+#include "CommunicationSequence.h"
+#include "CommunicationData.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,19 +62,18 @@
 char measure_temperature_message[64];
 char adjust_temperature_message[64];
 
-/*!
- *USART communication chars arrays
- */
+/*Data exchange with RPI structures */
 
-char HmiInputMessage[20];
-char HmiOutputMessage[20];
-int ComSequence = 0;
-float HmiTemperature  = 0;
+/* Communication process data */
+process ProcessData;
 
-int DebFlag = 0;
+/* Communication process input image */
+inputData InputData;
 
-/*!
- *ADC constans
+/* Communication process output image */
+outputData OutputData;
+
+ /*ADC constans
  */
 const uint32_t ADC_REG_MAX = 0xfff; // 12-bits
 const float ADC_VOLTAGE_MAX = 3.3; // [V]
@@ -167,16 +168,27 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //interrupt handler
  *after check value we set temperature_usart_adjust
  */
 
-int MessageIt = 0;
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 
   if(huart->Instance == UART4)
   {
-	  if(ComSequence == 100)
+
+	  switch (ProcessData.SequenceStep)
 	  {
-		  HAL_UART_Receive_IT(&huart4,(uint8_t*)HmiInputMessage,10);
+	  	  case 100:
+	  	  {
+	  		  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.ReadFlag),3);
+	  	  }
+	  	  case 300:
+	  	  {
+	  		  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.WriteFlag),3);
+	  	  }
+	  	  case 400:
+	  	  {
+	  		  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.InputFrame),64);
+	  	  }
 	  }
   }
 }
@@ -232,7 +244,7 @@ int main(void)
    */
   HAL_StatusTypeDef rx_status = ERROR;
 
-  HAL_UART_Receive_IT(&huart4,(uint8_t*)HmiInputMessage,20);
+  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.ReadFlag),20);
 
   HAL_ADC_Start(&hadc1);//Start ADC in blocking mode
 
@@ -290,7 +302,7 @@ int main(void)
 		if(DS18B20_GetTemperature(0, &temperature))
 			{
 				sprintf(measure_temperature_message,"Temp: %.3f Oc",temperature);
-				HmiTemperature = temperature;
+				OutputData.ActualTemperature = temperature;
 			}
 
 
@@ -358,7 +370,7 @@ int main(void)
 		}
 
 		//Communication sequence
-		CommunicationSequence();
+		CommunicationSequence(&ProcessData, &InputData, &OutputData);
 
 
 		HAL_Delay(10);
