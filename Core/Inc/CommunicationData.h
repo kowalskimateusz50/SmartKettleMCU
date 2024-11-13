@@ -13,9 +13,9 @@
 typedef struct process
 {
 	char InputFrame[64];
-	char ReadFlag[2];
+	char ReadFlag[3];
 	char OutputFrame[64];
-	char WriteFlag[2];
+	char WriteFlag[3];
 	int  SequenceStep;
 }process;
 

@@ -16,17 +16,11 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 		case 0:
 		{
 			//Clear communication arrays
-			for(int i = 0; i < strlen(ProcessData->InputFrame); i++) {
+			for(int i = 0; i < 64; i++) {
 				ProcessData->InputFrame[i] = '\0';
 			}
-			for(int i = 0; i < strlen(ProcessData->OutputFrame); i++) {
+			for(int i = 0; i < 64; i++) {
 				ProcessData->OutputFrame[i] = '\0';
-			}
-			for(int i = 0; i < strlen(ProcessData->ReadFlag); i++) {
-				ProcessData->ReadFlag[i] = '\0';
-			}
-			for(int i = 0; i < strlen(ProcessData->WriteFlag); i++) {
-				ProcessData->WriteFlag[i] = '\0';
 			}
 
 			ProcessData->SequenceStep = 100;
@@ -39,8 +33,12 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 			//Waiting for message from ISR
 			//Check if there is "rd" command
 
-			if(strcmp(ProcessData->ReadFlag, "rd") == 0)
+			if(strcmp(ProcessData->InputFrame, "rd") == 0)
 			{
+				//Clear input frame
+				for(int i = 0; i < 64; i++) {
+					ProcessData->InputFrame[i] = '\0';
+				}
 				//Go to next step
 				ProcessData->SequenceStep = 200;
 			}
@@ -54,20 +52,26 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 	  		int MessageLength = sprintf((ProcessData->OutputFrame),"Temp:%.3f;",(OutputData->ActualTemperature));
 
 	  		/* Pass message through UART */
-	  		HAL_UART_Transmit_IT(&huart4, (uint8_t*)ProcessData->OutputFrame, (MessageLength));
+	  		HAL_UART_Transmit_IT(&huart4, (uint8_t*)(ProcessData->OutputFrame), (MessageLength));
 
 	  		//End communication cycle and go to begining step
-	  		ProcessData->SequenceStep = 0;
+	  		ProcessData->SequenceStep = 300;
 			break;
 		}
 
 		//case 300: Awaiting for writing flag
 		case 300:
 		{
-			if(strcmp(ProcessData->WriteFlag, "wr") == 0)
+
+			//Search for 'wr' in InputFrame
+			for (int i = 0; i < 63; i++)
 			{
-				//Go to next step
-				ProcessData->SequenceStep = 400;
+				if ((ProcessData->InputFrame[i] == 'w') && (ProcessData->InputFrame[i + 1] == 'r'))
+				{
+					//Go to next step
+					ProcessData->SequenceStep = 400;
+				}
+
 			}
 			break;
 		}
@@ -87,6 +91,7 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 
 	}
 }
+
 
 
 

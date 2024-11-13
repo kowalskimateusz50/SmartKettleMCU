@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -174,22 +174,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
   if(huart->Instance == UART4)
   {
-
-	  switch (ProcessData.SequenceStep)
-	  {
-	  	  case 100:
+	  if (ProcessData.SequenceStep == 100 || ProcessData.SequenceStep == 300 || ProcessData.SequenceStep == 400)
 	  	  {
-	  		  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.ReadFlag),3);
+		  	  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.InputFrame),64);
 	  	  }
-	  	  case 300:
-	  	  {
-	  		  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.WriteFlag),3);
-	  	  }
-	  	  case 400:
-	  	  {
-	  		  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.InputFrame),64);
-	  	  }
-	  }
   }
 }
 
@@ -244,7 +232,7 @@ int main(void)
    */
   HAL_StatusTypeDef rx_status = ERROR;
 
-  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.ReadFlag),20);
+  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.InputFrame),64);
 
   HAL_ADC_Start(&hadc1);//Start ADC in blocking mode
 
