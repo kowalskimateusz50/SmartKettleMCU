@@ -6,7 +6,7 @@
  */
 #include <CommunicationSequence.h>
 
-void CommunicationSequence(process* ProcessData, inputData* InputData, outputData* OutputData)
+void CommunicationSequence(process* ProcessData, inputData* InputData, outputData* OutputData, UART_HandleTypeDef* huart4)
 {
 
 
@@ -15,10 +15,10 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 		//Initialization
 		case 0:
 		{
-			//Clear communication arrays
-			for(int i = 0; i < 64; i++) {
-				ProcessData->InputFrame[i] = '\0';
-			}
+			//Clear input data buffer
+			ClearBuffer(huart4, &ProcessData->InputFrame, 63);
+
+			//Clear output data buffer
 			for(int i = 0; i < 64; i++) {
 				ProcessData->OutputFrame[i] = '\0';
 			}
@@ -33,15 +33,21 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 			//Waiting for message from ISR
 			//Check if there is "rd" command
 
-			if(strcmp(ProcessData->InputFrame, "rd") == 0)
+			//Search for 'rd' in InputFrame
+			for (int i = 0; i < 63; i++)
 			{
-				//Clear input frame
-				for(int i = 0; i < 64; i++) {
-					ProcessData->InputFrame[i] = '\0';
+				if ((ProcessData->InputFrame[i] == 'r') && (ProcessData->InputFrame[i + 1] == 'd'))
+				{
+					//Clear input data buffer
+					ClearBuffer(huart4, &ProcessData->InputFrame, 63);
+					//Go to next step
+					ProcessData->SequenceStep = 200;
 				}
-				//Go to next step
-				ProcessData->SequenceStep = 200;
+
 			}
+				//Clear input frame
+
+
 			break;
 		}
 
@@ -49,10 +55,10 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 		case 200:
 		{
 	  		/* Create communication frame */
-	  		int MessageLength = sprintf((ProcessData->OutputFrame),"Temp:%.3f;",(OutputData->ActualTemperature));
+	  		int MessageLength = sprintf((ProcessData->OutputFrame),"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxTemp:%.3f;.",(OutputData->ActualTemperature));
 
 	  		/* Pass message through UART */
-	  		HAL_UART_Transmit_IT(&huart4, (uint8_t*)(ProcessData->OutputFrame), (MessageLength));
+	  		HAL_UART_Transmit_IT(huart4, (uint8_t*)(ProcessData->OutputFrame), (MessageLength));
 
 	  		//End communication cycle and go to begining step
 	  		ProcessData->SequenceStep = 300;
@@ -68,6 +74,8 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 			{
 				if ((ProcessData->InputFrame[i] == 'w') && (ProcessData->InputFrame[i + 1] == 'r'))
 				{
+					//Clear input data buffer
+					ClearBuffer(huart4, &ProcessData->InputFrame, 63);
 					//Go to next step
 					ProcessData->SequenceStep = 400;
 				}
@@ -78,11 +86,12 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 		//case 400: Reading data from HMI
 		case 400:
 		{
-			for(int i = 0; i != '\0'; i++)
+			for(int i = 0; i < 64; i++)
 			{
 				if(ProcessData->InputFrame[i]=='.')
 				{
 					//Go to beginning step
+					HAL_Delay(3000);
 					ProcessData->SequenceStep = 0;
 				}
 			}
@@ -90,6 +99,22 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 		}
 
 	}
+}
+
+void ClearBuffer(UART_HandleTypeDef* huart4, char* data, int dataLength)
+{
+	//Assisgn Uart RXBuffer pointer to beginning and reset RxCounter
+	huart4->pRxBuffPtr = &data;
+	huart4->RxXferCount = dataLength;
+
+	//Clear data buffer
+	for (int i = 0; i < dataLength; i++)
+	{
+		*data = '\0';
+		data++;
+	}
+
+
 }
 
 

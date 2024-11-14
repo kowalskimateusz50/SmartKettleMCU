@@ -176,7 +176,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   {
 	  if (ProcessData.SequenceStep == 100 || ProcessData.SequenceStep == 300 || ProcessData.SequenceStep == 400)
 	  	  {
-		  	  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.InputFrame),64);
+		  	  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.InputFrame),63);
 	  	  }
   }
 }
@@ -232,11 +232,12 @@ int main(void)
    */
   HAL_StatusTypeDef rx_status = ERROR;
 
-  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.InputFrame),64);
+  HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.InputFrame),63);
 
   HAL_ADC_Start(&hadc1);//Start ADC in blocking mode
-
-
+  int DataRxCount = huart4.RxXferCount;
+  int DataRxSize = huart4.RxXferSize;
+  int DataRxPtr = huart4.pRxBuffPtr;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -358,7 +359,7 @@ int main(void)
 		}
 
 		//Communication sequence
-		CommunicationSequence(&ProcessData, &InputData, &OutputData);
+		CommunicationSequence(&ProcessData, &InputData, &OutputData, &huart4);
 
 
 		HAL_Delay(10);
