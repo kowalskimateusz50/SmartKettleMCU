@@ -3,6 +3,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "string.h"
+#include  <stdio.h>
 #include "CommunicationData.h"
 
 /* \brief      Function responsible for clearing Uart buffer and setting buffer pointer at the beginning

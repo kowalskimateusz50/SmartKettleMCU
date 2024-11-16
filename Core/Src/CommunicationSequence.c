@@ -1,5 +1,5 @@
 /*
- * hmicom.c
+ * ComSequence.c
  *
  *  Created on: Nov 10, 2024
  *      Author: Mateusz Kowlalski
@@ -16,7 +16,7 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 		case 0:
 		{
 			//Clear input data buffer
-			ClearBuffer(huart4, &ProcessData->InputFrame, 63);
+			ClearBuffer(huart4, ProcessData->InputFrame, 63);
 
 			//Clear output data buffer
 			for(int i = 0; i < 64; i++) {
@@ -39,7 +39,7 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 				if ((ProcessData->InputFrame[i] == 'r') && (ProcessData->InputFrame[i + 1] == 'd'))
 				{
 					//Clear input data buffer
-					ClearBuffer(huart4, &ProcessData->InputFrame, 63);
+					ClearBuffer(huart4, ProcessData->InputFrame, 63);
 					//Go to next step
 					ProcessData->SequenceStep = 200;
 				}
@@ -75,7 +75,7 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 				if ((ProcessData->InputFrame[i] == 'w') && (ProcessData->InputFrame[i + 1] == 'r'))
 				{
 					//Clear input data buffer
-					ClearBuffer(huart4, &ProcessData->InputFrame, 63);
+					ClearBuffer(huart4, ProcessData->InputFrame, 63);
 					//Go to next step
 					ProcessData->SequenceStep = 400;
 				}
@@ -91,7 +91,7 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 				if(ProcessData->InputFrame[i]=='.')
 				{
 					//Go to beginning step
-					HAL_Delay(3000);
+					//Debug delay HAL_Delay(3000);
 					ProcessData->SequenceStep = 0;
 				}
 			}
@@ -104,7 +104,7 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 void ClearBuffer(UART_HandleTypeDef* huart4, char* data, int dataLength)
 {
 	//Assisgn Uart RXBuffer pointer to beginning and reset RxCounter
-	huart4->pRxBuffPtr = &data;
+	huart4->pRxBuffPtr = (uint8_t*)data;
 	huart4->RxXferCount = dataLength;
 
 	//Clear data buffer

@@ -235,9 +235,12 @@ int main(void)
   HAL_UART_Receive_IT(&huart4,(uint8_t*)(ProcessData.InputFrame),63);
 
   HAL_ADC_Start(&hadc1);//Start ADC in blocking mode
+
+  //Debug variables
   int DataRxCount = huart4.RxXferCount;
   int DataRxSize = huart4.RxXferSize;
-  int DataRxPtr = huart4.pRxBuffPtr;
+  uint8_t* DataRxPtr = huart4.pRxBuffPtr;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
