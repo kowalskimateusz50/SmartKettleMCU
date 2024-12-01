@@ -162,11 +162,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){ //interrupt handler
      }
 }
 
-/*!
- *USART Serial port interrupt
- *if serial port is sending something
- *after check value we set temperature_usart_adjust
- */
 
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)

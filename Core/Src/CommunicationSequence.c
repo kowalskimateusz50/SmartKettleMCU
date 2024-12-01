@@ -16,12 +16,13 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 		case 0:
 		{
 			//Clear input data buffer
-			ClearBuffer(huart4, ProcessData->InputFrame, 63);
+			ClearInputBuffer(huart4, ProcessData->InputFrame, INPUT_FRAME_LENGTH);
+			ClearOutputBuffer(huart4, ProcessData->OutputFrame, OUTPUT_FRAME_LENGTH);
 
-			//Clear output data buffer
+			/* Clear output data buffer
 			for(int i = 0; i < 64; i++) {
 				ProcessData->OutputFrame[i] = '\0';
-			}
+			} */
 
 			ProcessData->SequenceStep = 100;
 			break;
@@ -34,19 +35,14 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 			//Check if there is "rd" command
 
 			//Search for 'rd' in InputFrame
-			for (int i = 0; i < 63; i++)
-			{
-				if ((ProcessData->InputFrame[i] == 'r') && (ProcessData->InputFrame[i + 1] == 'd'))
+
+				if (CheckReadRequest(ProcessData))
 				{
 					//Clear input data buffer
-					ClearBuffer(huart4, ProcessData->InputFrame, 63);
+					ClearInputBuffer(huart4, ProcessData->InputFrame, INPUT_FRAME_LENGTH);
 					//Go to next step
 					ProcessData->SequenceStep = 200;
 				}
-
-			}
-				//Clear input frame
-
 
 			break;
 		}
@@ -55,7 +51,7 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 		case 200:
 		{
 	  		/* Create communication frame */
-	  		int MessageLength = sprintf((ProcessData->OutputFrame),"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxTemp:%.3f;.",(OutputData->ActualTemperature));
+	  		int MessageLength = sprintf((ProcessData->OutputFrame),"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxTemperature:%.3f;.",(OutputData->ActualTemperature));
 
 	  		/* Pass message through UART */
 	  		HAL_UART_Transmit_IT(huart4, (uint8_t*)(ProcessData->OutputFrame), (MessageLength));
@@ -70,42 +66,37 @@ void CommunicationSequence(process* ProcessData, inputData* InputData, outputDat
 		{
 
 			//Search for 'wr' in InputFrame
-			for (int i = 0; i < 63; i++)
+			if (CheckWriteRequest(ProcessData))
 			{
-				if ((ProcessData->InputFrame[i] == 'w') && (ProcessData->InputFrame[i + 1] == 'r'))
-				{
 					//Clear input data buffer
-					ClearBuffer(huart4, ProcessData->InputFrame, 63);
+					ClearInputBuffer(huart4, ProcessData->InputFrame, INPUT_FRAME_LENGTH);
 					//Go to next step
 					ProcessData->SequenceStep = 400;
-				}
-
 			}
 			break;
 		}
 		//case 400: Reading data from HMI
 		case 400:
 		{
-			for(int i = 0; i < 64; i++)
-			{
-				if(ProcessData->InputFrame[i]=='.')
+				if(checkInputData(ProcessData))
 				{
-					//Go to beginning step
-					//Debug delay HAL_Delay(3000);
+					//Read input data and save to structures
+					readInputData(ProcessData, InputData);
+
+					//End cycle and go to beginning step
 					ProcessData->SequenceStep = 0;
 				}
-			}
 			break;
 		}
 
 	}
 }
 
-void ClearBuffer(UART_HandleTypeDef* huart4, char* data, int dataLength)
+void ClearInputBuffer(UART_HandleTypeDef* huart4, char* data, int dataLength)
 {
 	//Assisgn Uart RXBuffer pointer to beginning and reset RxCounter
 	huart4->pRxBuffPtr = (uint8_t*)data;
-	huart4->RxXferCount = dataLength;
+	huart4->RxXferCount = dataLength - 1;
 
 	//Clear data buffer
 	for (int i = 0; i < dataLength; i++)
@@ -113,10 +104,44 @@ void ClearBuffer(UART_HandleTypeDef* huart4, char* data, int dataLength)
 		*data = '\0';
 		data++;
 	}
-
-
 }
 
+void ClearOutputBuffer(UART_HandleTypeDef* huart4, char* data, int dataLength)
+{
+	//Assisgn Uart TXBuffer pointer to beginning and reset RxCounter
+	huart4->pTxBuffPtr = (uint8_t*)data;
+	huart4->TxXferCount = dataLength - 1;
 
+	//Clear data buffer
+	for (int i = 0; i < dataLength; i++)
+	{
+		*data = '\0';
+		data++;
+	}
+}
+
+int CheckReadRequest(process* ProcessData)
+{
+	for (int i = 0; i < INPUT_FRAME_LENGTH - 1; i++)
+	{
+		if ((ProcessData->InputFrame[i] == 'r') && (ProcessData->InputFrame[i + 1] == 'd'))
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int CheckWriteRequest(process* ProcessData)
+{
+	for (int i = 0; i < INPUT_FRAME_LENGTH - 1; i++)
+	{
+		if ((ProcessData->InputFrame[i] == 'w') && (ProcessData->InputFrame[i + 1] == 'r'))
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
 
 

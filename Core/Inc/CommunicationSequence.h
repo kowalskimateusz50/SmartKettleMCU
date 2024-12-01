@@ -13,7 +13,7 @@
 * dataLength	Length of data array
 * \throws
 */
-void ClearBuffer(UART_HandleTypeDef* huart4, char* data, int dataLength);
+void ClearInputBuffer(UART_HandleTypeDef* huart4, char* data, int dataLength);
 
 /// \brief      Seq
 /// \param      CommunicationData        The data that will be exchanged to the COM port.
@@ -21,5 +21,6 @@ void ClearBuffer(UART_HandleTypeDef* huart4, char* data, int dataLength);
 
 void CommunicationSequence(process* ProcessData, inputData* InputData, outputData* OutputData, UART_HandleTypeDef* huart4);
 
+int CheckWriteRequest(process* ProcessData);
 
-
+int CheckReadRequest(process* ProcessData);

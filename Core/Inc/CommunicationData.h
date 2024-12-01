@@ -10,12 +10,16 @@
 #ifndef INC_COMMUNICATIONDATA_H_
 #define INC_COMMUNICATIONDATA_H_
 
+#include<string.h>
+#include<stdio.h>
+
+#define INPUT_FRAME_LENGTH 64
+#define OUTPUT_FRAME_LENGTH 64
+
 typedef struct process
 {
-	char InputFrame[64];
-	char ReadFlag[3];
-	char OutputFrame[64];
-	char WriteFlag[3];
+	char InputFrame[INPUT_FRAME_LENGTH];
+	char OutputFrame[OUTPUT_FRAME_LENGTH];
 	int  SequenceStep;
 }process;
 
@@ -36,5 +40,12 @@ typedef struct outputData
 	int   ErrorCode;
 
 }outputData;
+
+int checkInputData(process* ProcessData);
+
+int readInputData(process* ProcessData, inputData* InputData);
+
+
+
 
 #endif /* INC_COMMUNICATIONDATA_H_ */
