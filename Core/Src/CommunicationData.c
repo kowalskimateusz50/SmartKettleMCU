@@ -14,5 +14,16 @@ int checkInputData(process* ProcessData)
 
 int readInputData(process* ProcessData, inputData* InputData)
 {
+    //Fame overview
+    //RPI -> STM32 "TEMPADJUST:XXX;STARTREQ:X;STOPREQ:X;."
+
+
+
+
+
+}
+
+int extractTemperatureAdjustment()
+{
 
 }
