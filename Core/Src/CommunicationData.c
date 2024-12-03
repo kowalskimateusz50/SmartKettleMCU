@@ -16,14 +16,30 @@ int readInputData(process* ProcessData, inputData* InputData)
 {
     //Fame overview
     //RPI -> STM32 "TEMPADJUST:XXX;STARTREQ:X;STOPREQ:X;."
-
+	extractTemperatureAdjustment(ProcessData, InputData);
 
 
 
 
 }
 
-int extractTemperatureAdjustment()
+int extractTemperatureAdjustment(process* ProcessData, inputData* InputData)
 {
+    //Prefixes definition
+	char temp
+    char tPrefix[] = "TEMPADJUST:";
+    char tEndChar = ';';
+
+    //Get temperature reading
+    extractDataFromString(ProcessData, tPrefix, tEndChar);
+
+    //Get temperature reading
+    iTemperatureReading = stof(extractDataFromString(tInputData, tPrefix, tEndChar));
+
+    if (iTemperatureReading > 0)
+        return 1;
+    else
+        return 0;
+
 
 }

@@ -45,7 +45,7 @@ int checkInputData(process* ProcessData);
 
 int readInputData(process* ProcessData, inputData* InputData);
 
-int extractTemperatureAdjustment();
+int readTemperatureAdjustment();
 
 
 #endif /* INC_COMMUNICATIONDATA_H_ */
